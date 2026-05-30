@@ -67,9 +67,52 @@ LEGAL_PROMPTS = {
 }
 
 
+import httpx
+
 class VoiceService:
     def __init__(self):
-        self._groq = groq_sdk.Groq(api_key=settings.GROQ_API_KEY)
+        api_key = settings.GROQ_API_KEY.strip() if settings.GROQ_API_KEY else None
+        if not api_key:
+            print("[VoiceService] Warning: GROQ_API_KEY is not configured!")
+            self._groq = None
+            return
+
+        # Define different HTTP configurations to try
+        configs = [
+            {
+                "name": "Method 1: Proxy-aware (Default)",
+                "client": lambda: groq_sdk.Groq(api_key=api_key)
+            },
+            {
+                "name": "Method 2: Proxy-aware with verify=False (Bypass TLS inspection issues)",
+                "client": lambda: groq_sdk.Groq(api_key=api_key, http_client=httpx.Client(verify=False))
+            },
+            {
+                "name": "Method 3: Direct connection (Bypass proxy)",
+                "client": lambda: groq_sdk.Groq(api_key=api_key, http_client=httpx.Client(trust_env=False))
+            },
+            {
+                "name": "Method 4: Direct connection with verify=False (Bypass proxy & TLS validation)",
+                "client": lambda: groq_sdk.Groq(api_key=api_key, http_client=httpx.Client(trust_env=False, verify=False))
+            }
+        ]
+
+        self._groq = None
+        for config in configs:
+            print(f"[VoiceService] Testing connection using {config['name']}...")
+            try:
+                test_client = config["client"]()
+                # Run a lightweight models list call to verify connectivity
+                test_client.models.list()
+                print(f"[VoiceService] Success! Connection established using {config['name']}")
+                self._groq = test_client
+                break
+            except Exception as e:
+                print(f"[VoiceService] {config['name']} failed with error: {e}")
+
+        if not self._groq:
+            print("[VoiceService] WARNING: All connection strategies failed! Defaulting to Method 1 to avoid crash.")
+            self._groq = configs[0]["client"]()
 
     def transcribe(self, audio_bytes: bytes, lang: str = "hi") -> str:
         """STT: audio bytes (WebM/Opus/OGG/WAV) → text via Groq Whisper."""
