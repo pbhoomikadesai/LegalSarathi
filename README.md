@@ -171,7 +171,7 @@ cd frontend
 npm install
 npm run dev
 ```
-The application will be available at: **https://legal-sarathi.vercel.app/)**.
+The application will be available at: **https://legal-sarathi.vercel.app**.
 
 ---
 
