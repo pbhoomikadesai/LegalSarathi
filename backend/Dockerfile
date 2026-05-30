@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     git \
     poppler-utils \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     libgomp1 \
     && apt-get clean \
