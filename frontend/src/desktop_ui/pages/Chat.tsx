@@ -296,6 +296,21 @@ const Chat = () => {
     setPlaybackState({ id: msgId, engine: "browser", state: "playing" });
   };
 
+  const getVoiceChoices = () => {
+    const langCode = lang.split("-")[0].toLowerCase();
+    if (langCode === "en") {
+      return [
+        { name: "Female Neural 1 (India)" },
+        { name: "Male Neural (India)" },
+        { name: "Female Neural 2 (US)" }
+      ];
+    }
+    return [
+      { name: "Female Neural" },
+      { name: "Male Neural" }
+    ];
+  };
+
   const toggleAudio = (m: Msg) => {
     const isAndroidChrome = /Android/i.test(navigator.userAgent) && /Chrome/i.test(navigator.userAgent);
 
@@ -338,26 +353,7 @@ const Chat = () => {
     }
     setPlaybackState(null);
 
-    const hasBrowserTTS = typeof window !== "undefined" && "speechSynthesis" in window;
-    const bcp47 = (LANG_TO_BCP47 as Record<string, string>)[lang.split("-")[0]] || "hi-IN";
-
-    if (hasBrowserTTS) {
-      const allVoices = window.speechSynthesis?.getVoices() ?? [];
-      const idx = voicePrefs[m.id] ?? 0;
-      const preferredVoice = femaleVoices[idx] ?? femaleVoices[0];
-      const fallbackVoice =
-        preferredVoice ||
-        allVoices.find((voice) => voice.lang === bcp47) ||
-        allVoices.find((voice) => voice.lang.startsWith(bcp47.split("-")[0])) ||
-        allVoices[0];
-
-      if (fallbackVoice) {
-        speakUtterance(m.text, fallbackVoice, bcp47, m.id, () => playFromBackend(m));
-        return;
-      }
-    }
-
-    // No browser voice available — use backend edge-tts
+    // Play from high-quality backend neural Edge-TTS directly
     playFromBackend(m);
   };
 
@@ -365,19 +361,19 @@ const Chat = () => {
     // Persist the preference regardless of current playback state
     setVoicePrefs((prev) => ({ ...prev, [m.id]: idx }));
 
-    // If this message is currently playing in the browser engine, restart with new voice
-    if (playbackState?.id === m.id && playbackState.engine === "browser") {
+    // If this message is currently playing, stop it and play with new voice index
+    if (playbackState?.id === m.id) {
       window.speechSynthesis?.cancel();
       utteranceRef.current = null;
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
       setPlaybackState(null);
 
-      const bcp47 = (LANG_TO_BCP47 as Record<string, string>)[lang.split("-")[0]] || "hi-IN";
-      const voice = femaleVoices[idx];
-      if (!voice) return;
-
-      // Small delay to let the cancel settle before re-speaking
+      // Play with new voice choice from backend
       setTimeout(() => {
-        speakUtterance(m.text, voice, bcp47, m.id, () => playFromBackend(m));
+        playFromBackend(m);
       }, 80);
     }
   };
@@ -385,10 +381,11 @@ const Chat = () => {
   const playFromBackend = async (m: Msg) => {
     setPlaybackState({ id: m.id, engine: "backend", state: "loading" });
     try {
+      const idx = voicePrefs[m.id] ?? 0;
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: m.text, lang: lang }),
+        body: JSON.stringify({ text: m.text, lang: lang, voice_index: idx }),
       });
       if (!res.ok) throw new Error("TTS failed");
 
@@ -860,11 +857,11 @@ const Chat = () => {
                   </button>
 
                   {/* Inline Voice Picker — always visible when multiple voices exist */}
-                  {femaleVoices.length > 1 && (
+                  {getVoiceChoices().length > 1 && (
                     <div className="flex gap-1.5 ml-1">
-                      {femaleVoices.map((v, i) => (
+                      {getVoiceChoices().map((v, i) => (
                         <button
-                          key={v.name}
+                          key={i}
                           onClick={() => handleVoiceChange(i, m)}
                           title={v.name}
                           className={cn(

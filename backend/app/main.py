@@ -83,6 +83,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Transcription", "X-Query-Result"],
 )
 
 # ── Chat History Router ───────────────────────────────────────────────────────
@@ -107,6 +108,7 @@ class DocRequest(BaseModel):
 class TTSRequest(BaseModel):
     text: str
     lang: str = "hi"
+    voice_index: int = 0
 
 class DocChatRequest(BaseModel):
     doc_id: str = ""           # optional: ID of a previously ingested document
@@ -406,7 +408,7 @@ async def text_to_speech(req: TTSRequest, background_tasks: BackgroundTasks):
     try:
         if not voice_service:
             raise HTTPException(status_code=503, detail="Voice service is unavailable.")
-        mp3_path = await voice_service.synthesize(req.text, lang=req.lang)
+        mp3_path = await voice_service.synthesize(req.text, lang=req.lang, voice_index=req.voice_index)
         background_tasks.add_task(os.unlink, mp3_path)
         return FileResponse(
             mp3_path,

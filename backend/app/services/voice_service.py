@@ -22,19 +22,19 @@ LANG_TO_WHISPER = {
     "ml": "ml", "pa": "pa",
 }
 
-# Microsoft Neural voices per language — chosen for naturalness
+# Microsoft Neural voices per language — chosen for naturalness and gender diversity
 # Full list: https://learn.microsoft.com/azure/ai-services/speech-service/language-support
 EDGE_TTS_VOICES = {
-    "hi": "hi-IN-SwaraNeural",      # Hindi — natural female
-    "ta": "ta-IN-PallaviNeural",    # Tamil — female
-    "te": "te-IN-ShrutiNeural",     # Telugu — female
-    "mr": "mr-IN-AarohiNeural",     # Marathi — female
-    "bn": "bn-IN-TanishaaNeural",   # Bengali — female
-    "en": "en-IN-NeerjaNeural",     # English (Indian accent)
-    "gu": "gu-IN-DhwaniNeural",     # Gujarati — female
-    "kn": "kn-IN-SapnaNeural",      # Kannada — female
-    "ml": "ml-IN-SobhanaNeural",    # Malayalam — female
-    "pa": "pa-IN-OjaswineNeural",   # Punjabi — female
+    "hi": ["hi-IN-SwaraNeural", "hi-IN-MadhurNeural"],         # Hindi — Swara (Female) / Madhur (Male)
+    "ta": ["ta-IN-PallaviNeural", "ta-IN-ValluvarNeural"],     # Tamil — Pallavi (Female) / Valluvar (Male)
+    "te": ["te-IN-ShrutiNeural", "te-IN-MohanNeural"],         # Telugu — Shruti (Female) / Mohan (Male)
+    "mr": ["mr-IN-AarohiNeural", "mr-IN-ManoharNeural"],       # Marathi — Aarohi (Female) / Manohar (Male)
+    "bn": ["bn-IN-TanishaaNeural", "bn-IN-BashkarNeural"],     # Bengali — Tanishaa (Female) / Bashkar (Male)
+    "en": ["en-IN-NeerjaNeural", "en-IN-PrabhatNeural", "en-US-AriaNeural"], # English — Neerja (Female) / Prabhat (Male) / Aria (US Female)
+    "gu": ["gu-IN-DhwaniNeural", "gu-IN-NiranjanNeural"],     # Gujarati — Dhwani (Female) / Niranjan (Male)
+    "kn": ["kn-IN-SapnaNeural", "kn-IN-GaganNeural"],         # Kannada — Sapna (Female) / Gagan (Male)
+    "ml": ["ml-IN-SobhanaNeural", "ml-IN-MidhunNeural"],       # Malayalam — Sobhana (Female) / Midhun (Male)
+    "pa": ["pa-IN-OjaswineNeural", "pa-IN-GurpreetNeural"],   # Punjabi — Ojaswine (Female) / Gurpreet (Male)
 }
 
 # Domain-specific legal vocabulary prompt per language
@@ -140,10 +140,15 @@ class VoiceService:
             print(f"[STT] Groq Whisper error: {e}")
             return ""
 
-    async def synthesize(self, text: str, lang: str = "hi") -> str:
+    async def synthesize(self, text: str, lang: str = "hi", voice_index: int = 0) -> str:
         """TTS: text → mp3 path via edge-tts (Microsoft Neural voices)."""
         lang_code = lang.split("-")[0].lower()
-        voice = EDGE_TTS_VOICES.get(lang_code, "hi-IN-SwaraNeural")
+        voices = EDGE_TTS_VOICES.get(lang_code, ["hi-IN-SwaraNeural"])
+        
+        # Safe lookup for voice index
+        if not isinstance(voice_index, int) or voice_index < 0 or voice_index >= len(voices):
+            voice_index = 0
+        voice = voices[voice_index]
 
         tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False, prefix="sarathi_tts_")
         tmp.close()
