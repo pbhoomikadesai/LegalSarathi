@@ -1,6 +1,12 @@
+import os
+# Unset Hugging Face internal proxies that block external API requests (like Groq)
+os.environ.pop("HTTP_PROXY", None)
+os.environ.pop("HTTPS_PROXY", None)
+os.environ.pop("http_proxy", None)
+os.environ.pop("https_proxy", None)
+
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
