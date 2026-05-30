@@ -36,6 +36,10 @@ class GroqService:
         # Best reasoning + multilingual for full legal synthesis
         self.synthesis_model = "llama-3.3-70b-versatile"
 
+        import os
+        proxy_vars = {k: v for k, v in os.environ.items() if "proxy" in k.lower()}
+        print(f"[GroqService] Proxy environment variables: {proxy_vars}")
+
         api_key = settings.GROQ_API_KEY
         if not api_key:
             print("[GroqService] Warning: GROQ_API_KEY is not configured!")
@@ -77,9 +81,11 @@ class GroqService:
                 self.client = test_client
                 break
             except Exception as e:
+                import traceback
+                print(f"[GroqService] {config['name']} failed.")
+                traceback.print_exc()
                 err_msg = str(e).lower()
                 is_auth_error = "auth" in err_msg or "unauthorized" in err_msg or "api key" in err_msg or "401" in err_msg
-                print(f"[GroqService] {config['name']} failed with error: {e}")
                 if is_auth_error:
                     print("[GroqService] Authentication failure detected (likely invalid API key). Continuing with default client.")
                     self.client = config["client"]()
