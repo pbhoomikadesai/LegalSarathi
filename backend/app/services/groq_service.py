@@ -40,7 +40,7 @@ class GroqService:
         proxy_vars = {k: v for k, v in os.environ.items() if "proxy" in k.lower()}
         print(f"[GroqService] Proxy environment variables: {proxy_vars}")
 
-        api_key = settings.GROQ_API_KEY
+        api_key = settings.GROQ_API_KEY.strip() if settings.GROQ_API_KEY else None
         if not api_key:
             print("[GroqService] Warning: GROQ_API_KEY is not configured!")
             self.client = None
