@@ -31,14 +31,63 @@ import httpx
 
 class GroqService:
     def __init__(self):
-        self.client = groq.Groq(
-            api_key=settings.GROQ_API_KEY,
-            http_client=httpx.Client(trust_env=False)
-        )
         # Fast+high-RPD model for simple extraction tasks
         self.fast_model = "llama-3.1-8b-instant"
         # Best reasoning + multilingual for full legal synthesis
         self.synthesis_model = "llama-3.3-70b-versatile"
+
+        api_key = settings.GROQ_API_KEY
+        if not api_key:
+            print("[GroqService] Warning: GROQ_API_KEY is not configured!")
+            self.client = None
+            return
+
+        # Define different HTTP configurations to try
+        configs = [
+            {
+                "name": "Method 1: Proxy-aware (Default)",
+                "client": lambda: groq.Groq(api_key=api_key)
+            },
+            {
+                "name": "Method 2: Proxy-aware with verify=False (Bypass TLS inspection issues)",
+                "client": lambda: groq.Groq(api_key=api_key, http_client=httpx.Client(verify=False))
+            },
+            {
+                "name": "Method 3: Direct connection (Bypass proxy)",
+                "client": lambda: groq.Groq(api_key=api_key, http_client=httpx.Client(trust_env=False))
+            },
+            {
+                "name": "Method 4: Direct connection with verify=False (Bypass proxy & TLS validation)",
+                "client": lambda: groq.Groq(api_key=api_key, http_client=httpx.Client(trust_env=False, verify=False))
+            }
+        ]
+
+        self.client = None
+        for config in configs:
+            print(f"[GroqService] Testing connection using {config['name']}...")
+            try:
+                test_client = config["client"]()
+                # Run a very minimal 1-token query to verify connectivity
+                test_client.chat.completions.create(
+                    model=self.fast_model,
+                    messages=[{"role": "user", "content": "ping"}],
+                    max_tokens=1
+                )
+                print(f"[GroqService] Success! Connection established using {config['name']}")
+                self.client = test_client
+                break
+            except Exception as e:
+                err_msg = str(e).lower()
+                is_auth_error = "auth" in err_msg or "unauthorized" in err_msg or "api key" in err_msg or "401" in err_msg
+                print(f"[GroqService] {config['name']} failed with error: {e}")
+                if is_auth_error:
+                    print("[GroqService] Authentication failure detected (likely invalid API key). Continuing with default client.")
+                    self.client = config["client"]()
+                    break
+
+        if not self.client:
+            print("[GroqService] WARNING: All connection strategies failed! Defaulting to Method 1 to avoid crash.")
+            self.client = configs[0]["client"]()
 
     def _create_completion(self, model: str, messages: list, temperature: float = 0.3, max_tokens: int = 2000, response_format: dict = None):
         """Helper to create chat completions with automatic fallback for rate limits or server errors."""
