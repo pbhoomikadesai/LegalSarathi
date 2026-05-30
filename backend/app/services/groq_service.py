@@ -27,9 +27,14 @@ LANG_NAMES = {
     "kk": "Konkani",
 }
 
+import httpx
+
 class GroqService:
     def __init__(self):
-        self.client = groq.Groq(api_key=settings.GROQ_API_KEY)
+        self.client = groq.Groq(
+            api_key=settings.GROQ_API_KEY,
+            http_client=httpx.Client(trust_env=False)
+        )
         # Fast+high-RPD model for simple extraction tasks
         self.fast_model = "llama-3.1-8b-instant"
         # Best reasoning + multilingual for full legal synthesis
