@@ -1,8 +1,8 @@
 ---
 title: Legal Sarathi Backend
 emoji: ⚖️
-colorFrom: teal
-colorTo: amber
+colorFrom: green
+colorTo: yellow
 sdk: docker
 app_port: 7860
 pinned: false
