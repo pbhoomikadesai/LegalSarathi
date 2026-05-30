@@ -1,6 +1,6 @@
-# Legal Sarathi 2.0 - System Architecture
+# Legal Sarathi - System Architecture
 
-This document details the High-Level Design (HLD) and Low-Level Design (LLD) for the Legal Sarathi 2.0 platform.
+This document details the High-Level Design (HLD) and Low-Level Design (LLD) for the Legal Sarathi platform.
 
 ## 1. High-Level Design (HLD)
 

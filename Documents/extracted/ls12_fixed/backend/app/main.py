@@ -75,7 +75,7 @@ async def lifespan(app: FastAPI):
         print(f"[STARTUP ERROR] DocumentGenerationService failed to initialize: {e}")
     yield
 
-app = FastAPI(title="Legal Sarathi 2.0 API", lifespan=lifespan)
+app = FastAPI(title="Legal Sarathi API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -132,7 +132,7 @@ class DocumentListResponse(BaseModel):
 @app.get("/health")
 @app.get("/api/health")
 async def health_check():
-    return {"status": "healthy", "service": "legal-sarathi-2.0"}
+    return {"status": "healthy", "service": "legal-sarathi"}
 
 
 @app.post("/api/query")

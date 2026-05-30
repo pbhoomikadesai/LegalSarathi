@@ -1,7 +1,7 @@
-# Product Requirements Document (PRD): Legal Sarathi 2.0
+# Product Requirements Document (PRD): Legal Sarathi
 
 ## 1. Project Overview
-**Name:** Legal Sarathi 2.0
+**Name:** Legal Sarathi
 **Tagline:** "Apna Kanoon, Apni Bhasha" (Your Law, Your Language)
 **Vision:** To democratize legal intelligence across India by providing a high-speed, multilingual, AI-powered platform that decodes complex legal statutes, drafts documents, and connects citizens with verified local advocates.
 

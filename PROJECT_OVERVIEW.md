@@ -1,6 +1,6 @@
-# Legal Sarathi 2.0: Comprehensive Project Documentation (A to Z)
+# Legal Sarathi: Comprehensive Project Documentation (A to Z)
 
-This document provides a holistic, deep-dive explanation of the entire Legal Sarathi 2.0 ecosystem, detailing the architecture, technology stack, datasets, and API integrations that power the platform.
+This document provides a holistic, deep-dive explanation of the entire Legal Sarathi ecosystem, detailing the architecture, technology stack, datasets, and API integrations that power the platform.
 
 ---
 

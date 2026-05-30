@@ -1,6 +1,6 @@
-# Local Setup Guide — Legal Sarathi 2.0
+# Local Setup Guide — Legal Sarathi
 
-Follow these steps to run the Legal Sarathi 2.0 platform on your 16GB CPU machine.
+Follow these steps to run the Legal Sarathi platform on your 16GB CPU machine.
 
 ## Prerequisites
 - **Python 3.9+**

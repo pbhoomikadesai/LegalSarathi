@@ -1,6 +1,6 @@
-# ⚖️ Legal Sarathi 2.0
+# ⚖️ Legal Sarathi
 
-Legal Sarathi 2.0 is a resource-efficient, production-ready AI Legal Assistant designed to make legal rights accessible to 1.4 billion Indian citizens in their native languages. 
+Legal Sarathi is a resource-efficient, production-ready AI Legal Assistant designed to make legal rights accessible to 1.4 billion Indian citizens in their native languages. 
 
 Equipped with an advanced 6-stage Hybrid RAG pipeline, it retrieves relevant statutes, conducts citation audits, translates Indic queries, and compiles court-ready drafts—all while maintaining complete data privacy and sub-second latencies through local execution fallbacks.
 
