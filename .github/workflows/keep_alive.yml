@@ -1,4 +1,4 @@
-name: Keep Hugging Face Space Alive
+name: Keep Hugging Face Space & Supabase Alive
 
 on:
   schedule:
@@ -11,22 +11,34 @@ jobs:
     steps:
       - name: Ping Hugging Face Space
         run: |
-          # Retrieve URL from GitHub Secret or use a fallback hardcoded URL
           TARGET_URL="${{ secrets.HF_SPACE_URL }}"
-          
           if [ -z "$TARGET_URL" ]; then
-            # Replace the URL below with your actual Hugging Face Space URL if not using secrets
             TARGET_URL="https://bhoomika-03-legal-sarathi-backend.hf.space/"
           fi
-          
-          echo "Pinging Space at $TARGET_URL to keep it awake..."
-          
-          # Send an HTTP request and output the HTTP status code
+          echo "Pinging Hugging Face Space at $TARGET_URL to keep it awake..."
           STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
           echo "Received status code: $STATUS_CODE"
+
+      - name: Ping Supabase REST API (Prevents Auto-Pausing)
+        run: |
+          # Use secrets if available, otherwise fallback to the configured URL & Anon Key
+          SUPABASE_URL="${{ secrets.SUPABASE_URL }}"
+          SUPABASE_ANON_KEY="${{ secrets.SUPABASE_ANON_KEY }}"
           
-          if [ "$STATUS_CODE" -ge 200 ] && [ "$STATUS_CODE" -lt 400 ]; then
-            echo "Successfully pinged Hugging Face Space! Space is awake."
-          else
-            echo "Warning: Received unexpected status code $STATUS_CODE. Space might be waking up or experiencing an issue."
+          if [ -z "$SUPABASE_URL" ]; then
+            SUPABASE_URL="https://foykzvyrehstrdgbzhnj.supabase.co"
           fi
+          
+          if [ -z "$SUPABASE_ANON_KEY" ]; then
+            SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZveWt6dnlyZWhzdHJkZ2J6aG5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxMzA1MzMsImV4cCI6MjA5NTcwNjUzM30.-ACrOvVr_JhYHBgVzvZjzXWwq_clNBfVzG45LQYv4Mk"
+          fi
+          
+          echo "Sending query to Supabase REST API at $SUPABASE_URL..."
+          
+          # Requesting the REST API root with the apikey header triggers database activity
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/")
+            
+          echo "Supabase responded with status code: $STATUS_CODE"
