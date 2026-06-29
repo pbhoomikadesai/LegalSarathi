@@ -1,0 +1,32 @@
+name: Keep Hugging Face Space Alive
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Runs every 30 minutes
+  workflow_dispatch: # Allows you to trigger it manually from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Hugging Face Space
+        run: |
+          # Retrieve URL from GitHub Secret or use a fallback hardcoded URL
+          TARGET_URL="${{ secrets.HF_SPACE_URL }}"
+          
+          if [ -z "$TARGET_URL" ]; then
+            # Replace the URL below with your actual Hugging Face Space URL if not using secrets
+            TARGET_URL="https://bhoomika-03-legal-sarathi-backend.hf.space/"
+          fi
+          
+          echo "Pinging Space at $TARGET_URL to keep it awake..."
+          
+          # Send an HTTP request and output the HTTP status code
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$TARGET_URL")
+          echo "Received status code: $STATUS_CODE"
+          
+          if [ "$STATUS_CODE" -ge 200 ] && [ "$STATUS_CODE" -lt 400 ]; then
+            echo "Successfully pinged Hugging Face Space! Space is awake."
+          else
+            echo "Warning: Received unexpected status code $STATUS_CODE. Space might be waking up or experiencing an issue."
+          fi
